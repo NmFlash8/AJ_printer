@@ -49,6 +49,7 @@ def mark_position(message):
         time.sleep(0.05)
 
 def main():
+    # Folder names
     starting_folder = "start"
     json_folder = "jsons"
     finished_folder = "finished"
@@ -57,6 +58,7 @@ def main():
     for folder in [starting_folder, json_folder, finished_folder]:
         if not os.path.exists(folder):
             os.makedirs(folder)
+
     print("[1-5] 1 being the higest 3 being average")
     quality = int(input("Quality: "))
     starting_files = os.listdir(starting_folder)
@@ -78,8 +80,9 @@ def main():
             canvas_height = canvas_bottom_right[1] - canvas_top_left[1]
             image = image.resize((canvas_width, canvas_height))
 
+            # create a list of every pixel color in the palette
             palette = Image.open("palette.png")
-            palette_colors = list(palette.getdata())
+            palette_colors = list(palette.getdata()) 
 
             canvas_click_coords = []
             palette_click_coords = []
@@ -87,6 +90,9 @@ def main():
             start_time = time.time()
             drawn_pixels = 1
             total_pixels = (canvas_width / quality) * (canvas_height / quality)
+
+            # Compare each pixel to each pixel in the color palette keep the closest quality
+            # FIND A MORE EFFECIENT WAY: O(n^2)
             for y in range(starting_y, canvas_height, quality):
                 for x in range(starting_x, canvas_width, quality):
                     selected_pixel = image.getpixel((x, y))[:3]
@@ -103,6 +109,7 @@ def main():
                     palette_x = color_location % palette_columns + palette_top_left[0]
                     palette_y = color_location // palette_columns + palette_top_left[1]
 
+                    # Add locations of where to click on the canvas / the color palette to list
                     palette_click_coords.append((palette_x, palette_y))
                     canvas_click_coords.append((x + canvas_top_left[0], y + canvas_top_left[1]))
                     
@@ -116,11 +123,12 @@ def main():
             seconds = int(elapsed_time % 60)
             print()
             print(f"[{image_name}{image_format}] took {hours}h {minutes}m {seconds}s")
+
             # Save the coordinates as JSON
             with open(json_output_path, 'w') as json_file:
                 json.dump({"canvas_click_coords": canvas_click_coords, "palette_click_coords": palette_click_coords}, json_file)
 
-            # Move image file to finished folder
+            # Move image file from start to finished folder
             shutil.move(image_path, finished_path)
 
 if __name__ == "__main__":
